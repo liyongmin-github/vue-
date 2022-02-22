@@ -6,7 +6,7 @@ const getDefaultState = () => {
   return {
     token: getToken(),
     name: '',
-    avatar: ''
+    avatar: ''//头像
   }
 }
 
@@ -89,7 +89,7 @@ const actions = {
 }
 
 export default {
-  namespaced: true,
+  namespaced: true,//开启命名空间
   state,
   mutations,
   actions
