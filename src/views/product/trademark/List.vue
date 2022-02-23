@@ -45,7 +45,7 @@
       layout="prev, pager, next, jumper, ->,sizes,total"
       style="text-align: center"
       @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
+      @current-change="reqTrademarkList"
     >
     </el-pagination>
 
@@ -109,7 +109,7 @@ export default {
     };
   },
   mounted() {
-    this.reqTrademarkList(this.page, this.limit);
+    this.reqTrademarkList();
   },
   methods: {
     //pagination分页器中的回调函数
@@ -117,19 +117,21 @@ export default {
     handleSizeChange(val) {
       //console.log(`每页 ${val} 条`);
       this.limit = val;
-      this.reqTrademarkList(this.page, this.limit);
+      this.reqTrademarkList();
     },
     
     //点击页码触发的回调函数，函数形参接收点击的当前页
-    handleCurrentChange(val) {
+    /* handleCurrentChange(val) {
       //console.log(`当前页: ${val}`);
       this.page = val; //修改page,重新发送请求
-      this.reqTrademarkList(this.page, this.limit);//这部分代码可以整合到reqTrademarkList中
-    },
+      this.reqTrademarkList(this.page);//这部分代码可以整合到reqTrademarkList中(直接将请求列表数据的函数放在原来这个页面跳转的回调函数位置)
+    }, */
 
     //调用查询trademarkLIst的接口
-    async reqTrademarkList(page, limit) {
-      const re = await this.$API.trademark.getTradeMarkList(page, limit); //异步请求
+    async reqTrademarkList(page=1) {//此时注意给page初始值，否则monted中无参数调用就会报错
+      //此时函数reqTrademarkList同时也充当了handleCurrentChange函数的作用，形参会接收当前点击的页面编号
+      this.page = page;
+      const re = await this.$API.trademark.getTradeMarkList(page, this.limit); //异步请求
       try {
         if (re.code === 20000 || re.code === 200) {
           //20000是mock请求返回的
@@ -191,7 +193,7 @@ export default {
             this.tmForm.id ? "修改数据成功" : "新增数据成功"
           );
           //完成数据新增后要重新发送获取trademarkList的请求,并展示首页
-          this.reqTrademarkList(this.tmForm.id ? this.page : 1, this.limit);
+          this.reqTrademarkList(this.tmForm.id ? this.page : 1);
         } else {
           this.$message.error(this.tmForm.id ? "修改数据失败" : "新增数据失败");
         }
