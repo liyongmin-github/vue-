@@ -1,6 +1,8 @@
 <template>
   <div style="padding: 10px">
-    <el-button type="primary" icon="el-icon-plus">新增</el-button>
+    <el-button type="primary" icon="el-icon-plus" @click="showAddLogo"
+      >新增</el-button
+    >
     <el-table :data="trademarkList" style="width: 100%; margin: 20px 0" border>
       <el-table-column align="center" label="序号" width="80" type="index">
       </el-table-column>
@@ -9,17 +11,25 @@
       </el-table-column>
 
       <el-table-column label="品牌LOGO" width="width">
-          <!-- 作用域插槽：数据来源于父组件，样式由父组件决定，父组件可以接受到子组件内部传递的row数据 -->
-          <template v-slot="{row,$index}">
-              <img :src="row.logoUrl" alt="" style="width:80px;height:60px;">
-          </template>
+        <!-- 作用域插槽：数据来源于父组件，样式由父组件决定，父组件可以接受到子组件内部传递的row数据 -->
+        <template v-slot="{ row, $index }">
+          <img :src="row.logoUrl" alt="" style="width: 80px; height: 60px" />
+        </template>
       </el-table-column>
 
       <el-table-column prop="prop" label="操作" width="width">
-          <template v-slot="{row,$index}">
-              <el-button type="warning" icon="el-icon-edit" size="mini">修改</el-button>
-              <el-button type="danger " icon="el-icon-delete" size="mini">删除</el-button>
-          </template>
+        <template v-slot="{ row, $index }">
+          <el-button
+            type="warning"
+            icon="el-icon-edit"
+            size="mini"
+            @click="updateTrademark(row)"
+            >修改</el-button
+          >
+          <el-button type="danger " icon="el-icon-delete" size="mini"
+            >删除</el-button
+          >
+        </template>
       </el-table-column>
     </el-table>
 
@@ -27,10 +37,10 @@
         pager-count:连续页长度（注意包括首尾的两个）
      -->
     <el-pagination
-      :current-page=page
+      :current-page="page"
       :page-sizes="[3, 5, 10]"
-      :page-size=limit
-      :total=total
+      :page-size="limit"
+      :total="total"
       :pager-count="7"
       layout="prev, pager, next, jumper, ->,sizes,total"
       style="text-align: center"
@@ -39,6 +49,45 @@
     >
     </el-pagination>
 
+    <!-- 使用嵌套表单的dialog实现新增静态页面 -->
+    <el-dialog title="添加品牌" :visible.sync="dialogFormVisible">
+      <!-- :model="tmForm"这个属性写上是为了我们后期做表单验证而写的
+      表单验证后期要验证的数据是哪个对象 -->
+      <!-- form当中 ：model=对象 指定收集的数据最终放在哪 -->
+      <el-form :model="tmForm">
+        <el-form-item label="品牌名称" label-width="100px">
+          <el-input
+            autocomplete="off"
+            style="width: 80%"
+            v-model="tmForm.tmName"
+          ></el-input>
+        </el-form-item>
+
+        <el-form-item label="品牌LOGO" label-width="100px">
+          <!-- 图片上传 -->
+          <!-- 
+            注意：此处图片上传获取url接口请求发送比较特殊，不是通过axios发送的，注意添加代理标识     
+           -->
+          <el-upload
+            class="avatar-uploader"
+            action="/dev-api/admin/product/fileUpload"
+            :show-file-list="false"
+            :on-success="handleAvatarSuccess"
+            :before-upload="beforeAvatarUpload"
+          >
+            <!-- 使用在线获取的imageUrl，才会展示图片 -->
+            <img v-if="tmForm.logoUrl" :src="tmForm.logoUrl" class="avatar" />
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button type="primary" @click="addOrUpdateTrademark"
+          >确 定</el-button
+        >
+      </div>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -50,10 +99,17 @@ export default {
       limit: 3,
       trademarkList: [],
       total: 0,
+      //是否显示新增图片的静态页
+      dialogFormVisible: false,
+      //增加/修改请求的数据收集
+      tmForm: {
+        logoUrl: "",
+        tmName: "",
+      },
     };
   },
   mounted() {
-    this.reqTrademarkList();
+    this.reqTrademarkList(this.page, this.limit);
   },
   methods: {
     //pagination分页器中的回调函数
@@ -61,18 +117,18 @@ export default {
     handleSizeChange(val) {
       //console.log(`每页 ${val} 条`);
       this.limit = val;
-      this.reqTrademarkList();
+      this.reqTrademarkList(this.page, this.limit);
     },
     //点击页码触发的回调函数，函数形参接收点击的当前页
     handleCurrentChange(val) {
       //console.log(`当前页: ${val}`);
-      this.page = val;//修改page,重新发送请求
-      this.reqTrademarkList();
+      this.page = val; //修改page,重新发送请求
+      this.reqTrademarkList(this.page, this.limit);
     },
 
     //调用查询trademarkLIst的接口
-    async reqTrademarkList() {
-      const re = await this.$traApi.getTradeMarkList(this.page, this.limit); //异步请求
+    async reqTrademarkList(page, limit) {
+      const re = await this.$traApi.getTradeMarkList(page, limit); //异步请求
       try {
         if (re.code === 20000 || re.code === 200) {
           //20000是mock请求返回的
@@ -83,12 +139,100 @@ export default {
           this.$message.error("获取trademarkLIst失败", re.message);
         }
       } catch (e) {
-        
         this.$message.error("请求trademarkLIst失败");
       }
+    },
+
+    //upload组件相关回调函数
+    //图片上传成功后，执行的回调函数
+    handleAvatarSuccess(res, file) {
+      //console.log(res,'***',file);//两个对象都可以获取到需要的数据url;
+      this.tmForm.logoUrl = res.data;
+    },
+    //图片上传前图片格式和大小的校验
+    beforeAvatarUpload(file) {
+      const isJPG = file.type === "image/jpeg";
+      const isLt2M = file.size / 1024 / 1024 < 2;
+
+      if (!isJPG) {
+        this.$message.error("上传头像图片只能是 JPG 格式!");
+      }
+      if (!isLt2M) {
+        this.$message.error("上传头像图片大小不能超过 2MB!");
+      }
+      return isJPG && isLt2M;
+    },
+
+    //点击新增，显示upload静态页面
+    showAddLogo() {
+      //每次点击新增之前注意先清空tmForm
+     /*  this.tmForm.logoUrl = "";
+      this.tmForm.tmName = ""; */
+      //注意不能使用上面的写法，否则会遗留id这个数据
+      this.tmForm = {
+        logoUrl: "",
+        tmName: "",
+      }
+      this.dialogFormVisible = true;
+    },
+
+    //点击添加静态页面中的确认，新增数据
+    async addOrUpdateTrademark() {
+      this.dialogFormVisible = false;
+      //异步发送请求，新增数据
+
+      const re = await this.$traApi.getAddOrUpdateTradeMark(this.tmForm);
+      //console.log(re.code,re.data);
+      try {
+        if (re.code === 20000 || re.code === 200) {
+          this.$message.success(
+            this.tmForm.id ? "修改数据成功" : "新增数据成功"
+          );
+          //完成数据新增后要重新发送获取trademarkList的请求,并展示首页
+          this.reqTrademarkList(this.tmForm.id ? this.page : 1, this.limit);
+        } else {
+          this.$message.error(this.tmForm.id ? "修改数据失败" : "新增数据失败");
+        }
+      } catch (e) {
+        this.$message.error(
+          this.tmForm.id ? "请求修改数据失败" : "请求新增数据失败"
+        );
+      }
+    },
+
+    //点击修改数据，触发事件
+    updateTrademark(row) {
+      //console.log(row);
+      this.dialogFormVisible = true;
+      this.tmForm = { ...row }; //此处注意，不能直接报row给thForm,否则修改tmFom数据会直接影响table中的数据，此处row中都是基本数据类型，使用拷贝即可(可理解为浅拷贝)
+      //接下来就会复用新增数据的操作
     },
   },
 };
 </script>
+
 <style>
+.avatar-uploader .el-upload {
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.avatar-uploader .el-upload:hover {
+  border-color: #409eff;
+}
+.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  line-height: 178px;
+  text-align: center;
+}
+.avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
+}
 </style>
