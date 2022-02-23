@@ -54,16 +54,22 @@
     </el-pagination>
 
     <!-- 使用嵌套表单的dialog实现新增静态页面 -->
+
     <el-dialog title="添加品牌" :visible.sync="dialogFormVisible">
       <!-- :model="tmForm"这个属性写上是为了我们后期做表单验证而写的
       表单验证后期要验证的数据是哪个对象 -->
       <!-- form当中 ：model=对象 指定收集的数据最终放在哪 -->
-      <el-form :model="tmForm" style="width: 80%">
-        <el-form-item label="品牌名称" label-width="100px">
+      <!-- 
+        Form组件的表单验证：
+        Form 组件提供了表单验证的功能，只需要通过 1.rules 属性传入约定的验证规则，
+        并将 Form-Item 的 2.prop 属性设置为需校验的字段名即可。 
+      -->
+      <el-form :model="tmForm" style="width: 80%" :rules="rules" ref="tmForm">
+        <el-form-item label="品牌名称" label-width="100px" prop="tmName">
           <el-input autocomplete="off" v-model="tmForm.tmName"></el-input>
         </el-form-item>
 
-        <el-form-item label="品牌LOGO" label-width="100px">
+        <el-form-item label="品牌LOGO" label-width="100px" prop="logoUrl">
           <!-- 图片上传 -->
           <!-- 
             注意：此处图片上传获取url接口请求发送比较特殊，不是通过axios发送的，注意添加代理标识     
@@ -97,6 +103,13 @@
 export default {
   name: "Trademark",
   data() {
+    const myValidator1 = (rules, value, callback) => {
+      if (value.length < 3 || value.length > 5) {
+        callback(new Error("请输入长度在3-5个字符的品牌名")); //验证不通过调用带错误对象参数的callback函数
+      } else {
+        callback(); //验证通过直接调用不带参数的callback函数
+      }
+    };
     return {
       page: 1,
       limit: 3,
@@ -108,6 +121,25 @@ export default {
       tmForm: {
         logoUrl: "",
         tmName: "",
+      },
+      rules: {
+        //单个验证（内置规则和自定义规则，:model= xxx, rules = {xxx},prop = xxx）
+        //书写表单验证的规则
+        //rules中使用的数据名和form组件中:model = xxx接收的对象中的数据一一对应
+        tmName: [
+          //内置验证规则
+          { required: true, message: "请输入品牌", trigger: "blur" },
+          //使用自定义规则；自定义规则需要在data函数中书写自定义验证器
+          {
+            /*  min: 3,
+            max: 5,
+            message: "长度在 3 到 5 个字符",
+            trigger: "change", */
+            validator: myValidator1,
+            trigger: "change",
+          },
+        ],
+        logoUrl: [{ required: true, message: "请选择品牌LOGO图片" }],
       },
     };
   },
@@ -185,27 +217,38 @@ export default {
     },
 
     //点击添加静态页面中的确认，新增数据
-    async addOrUpdateTrademark() {
-      this.dialogFormVisible = false;
-      //异步发送请求，新增数据
-
-      const re = await this.$API.trademark.getAddOrUpdate(this.tmForm);
-      //console.log(re.code,re.data);
-      try {
-        if (re.code === 20000 || re.code === 200) {
-          this.$message.success(
-            this.tmForm.id ? "修改数据成功" : "新增数据成功"
-          );
-          //完成数据新增后要重新发送获取trademarkList的请求,并展示首页
-          this.reqTrademarkList(this.tmForm.id ? this.page : 1);
+    addOrUpdateTrademark() {
+      //点击确定后，先进行表单数据的整体验证，验证通过后再进行后续的发请求操作
+      this.$refs.tmForm.validate(async (valid) => {
+        //首先进行表单验证操作，回调函数valid是验证结果
+        if (valid) {
+          //验证通过发送请求
+          this.dialogFormVisible = false; //隐藏dialog
+          //异步发送请求，新增数据
+          const re = await this.$API.trademark.getAddOrUpdate(this.tmForm);
+          //console.log(re.code,re.data);
+          try {
+            if (re.code === 20000 || re.code === 200) {
+              this.$message.success(
+                this.tmForm.id ? "修改数据成功" : "新增数据成功"
+              );
+              //完成数据新增后要重新发送获取trademarkList的请求,并展示首页
+              this.reqTrademarkList(this.tmForm.id ? this.page : 1);
+            } else {
+              this.$message.error(
+                this.tmForm.id ? "修改数据失败" : "新增数据失败"
+              );
+            }
+          } catch (e) {
+            this.$message.error(
+              this.tmForm.id ? "请求修改数据失败" : "请求新增数据失败"
+            );
+          }
         } else {
-          this.$message.error(this.tmForm.id ? "修改数据失败" : "新增数据失败");
+          this.$message.error("您输入的数据不符合要求，请检查后重新提交！！！");
+          return false;
         }
-      } catch (e) {
-        this.$message.error(
-          this.tmForm.id ? "请求修改数据失败" : "请求新增数据失败"
-        );
-      }
+      });
     },
 
     //点击修改数据，触发事件
@@ -223,7 +266,8 @@ export default {
         cancelButtonText: "取消",
         type: "warning",
       })
-        .then(async () => {//注意修改sync的位置，放在最近的函数前
+        .then(async () => {
+          //注意修改sync的位置，放在最近的函数前
           //点击确定，发送请求
           const re = await this.$API.trademark.getDel(row.id);
           try {
@@ -233,9 +277,10 @@ export default {
                 message: "删除成功!",
               });
               //需要重新请求当前页列表数据，同时需要判断当前页数据条数
-              if(this.trademarkList.length > 1){
+              if (this.trademarkList.length > 1) {
                 this.reqTrademarkList(this.page);
-              }else{//如果当前页条数小于等于1的时候重新请求跳转到前一页
+              } else {
+                //如果当前页条数小于等于1的时候重新请求跳转到前一页
                 this.reqTrademarkList(this.page - 1);
               }
             } else {
@@ -246,9 +291,9 @@ export default {
             }
           } catch (e) {
             this.$message({
-                type: "error",
-                message: "请求删除失败!",
-              });
+              type: "error",
+              message: "请求删除失败!",
+            });
           }
         })
         .catch(() => {
