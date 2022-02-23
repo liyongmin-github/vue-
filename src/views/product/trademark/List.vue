@@ -26,7 +26,11 @@
             @click="updateTrademark(row)"
             >修改</el-button
           >
-          <el-button type="danger " icon="el-icon-delete" size="mini"
+          <el-button
+            type="danger "
+            icon="el-icon-delete"
+            size="mini"
+            @click="delTrademark(row)"
             >删除</el-button
           >
         </template>
@@ -56,10 +60,7 @@
       <!-- form当中 ：model=对象 指定收集的数据最终放在哪 -->
       <el-form :model="tmForm" style="width: 80%">
         <el-form-item label="品牌名称" label-width="100px">
-          <el-input
-            autocomplete="off"
-            v-model="tmForm.tmName"
-          ></el-input>
+          <el-input autocomplete="off" v-model="tmForm.tmName"></el-input>
         </el-form-item>
 
         <el-form-item label="品牌LOGO" label-width="100px">
@@ -77,7 +78,9 @@
             <!-- 使用在线获取的imageUrl，才会展示图片 -->
             <img v-if="tmForm.logoUrl" :src="tmForm.logoUrl" class="avatar" />
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-             <div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过2M</div>
+            <div class="el-upload__tip" slot="tip">
+              只能上传jpg/png文件，且不超过2M
+            </div>
           </el-upload>
         </el-form-item>
       </el-form>
@@ -119,7 +122,7 @@ export default {
       this.limit = val;
       this.reqTrademarkList();
     },
-    
+
     //点击页码触发的回调函数，函数形参接收点击的当前页
     /* handleCurrentChange(val) {
       //console.log(`当前页: ${val}`);
@@ -128,7 +131,8 @@ export default {
     }, */
 
     //调用查询trademarkLIst的接口
-    async reqTrademarkList(page=1) {//此时注意给page初始值，否则monted中无参数调用就会报错
+    async reqTrademarkList(page = 1) {
+      //此时注意给page初始值，否则monted中无参数调用就会报错
       //此时函数reqTrademarkList同时也充当了handleCurrentChange函数的作用，形参会接收当前点击的页面编号
       this.page = page;
       const re = await this.$API.trademark.getTradeMarkList(page, this.limit); //异步请求
@@ -170,13 +174,13 @@ export default {
     //点击新增，显示upload静态页面
     showAddLogo() {
       //每次点击新增之前注意先清空tmForm
-     /*  this.tmForm.logoUrl = "";
+      /*  this.tmForm.logoUrl = "";
       this.tmForm.tmName = ""; */
       //注意不能使用上面的写法，否则会遗留id这个数据
       this.tmForm = {
         logoUrl: "",
         tmName: "",
-      }
+      };
       this.dialogFormVisible = true;
     },
 
@@ -210,6 +214,50 @@ export default {
       this.dialogFormVisible = true;
       this.tmForm = { ...row }; //此处注意，不能直接报row给thForm,否则修改tmFom数据会直接影响table中的数据，此处row中都是基本数据类型，使用拷贝即可(可理解为浅拷贝)
       //接下来就会复用新增数据的操作
+    },
+
+    //删除数据功能,需要使用messageBox弹出消息框
+    delTrademark(row) {
+      this.$confirm(`你确定要删除${row.tmName}吗?`, "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(async () => {//注意修改sync的位置，放在最近的函数前
+          //点击确定，发送请求
+          const re = await this.$API.trademark.getDel(row.id);
+          try {
+            if (re.code === 20000 || re.code === 200) {
+              this.$message({
+                type: "success",
+                message: "删除成功!",
+              });
+              //需要重新请求当前页列表数据，同时需要判断当前页数据条数
+              if(this.trademarkList.length > 1){
+                this.reqTrademarkList(this.page);
+              }else{//如果当前页条数小于等于1的时候重新请求跳转到前一页
+                this.reqTrademarkList(this.page - 1);
+              }
+            } else {
+              this.$message({
+                type: "error",
+                message: "删除失败!",
+              });
+            }
+          } catch (e) {
+            this.$message({
+                type: "error",
+                message: "请求删除失败!",
+              });
+          }
+        })
+        .catch(() => {
+          //点击取消，只发送提示即可
+          this.$message({
+            type: "info",
+            message: "已取消删除",
+          });
+        });
     },
   },
 };
