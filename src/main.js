@@ -15,8 +15,8 @@ import router from './router'
 import '@/icons' // icon
 import '@/permission' // permission control
 
-import traApi from "@/api/trademark";
-Vue.prototype.$traApi = traApi;
+import * as API from "@/api";//注意引入的方式
+Vue.prototype.$API = API;
 //Vue.prototype
 
 /**

@@ -1,5 +1,5 @@
 <template>
-  <div style="padding: 10px">
+  <div>
     <el-button type="primary" icon="el-icon-plus" @click="showAddLogo"
       >新增</el-button
     >
@@ -54,11 +54,10 @@
       <!-- :model="tmForm"这个属性写上是为了我们后期做表单验证而写的
       表单验证后期要验证的数据是哪个对象 -->
       <!-- form当中 ：model=对象 指定收集的数据最终放在哪 -->
-      <el-form :model="tmForm">
+      <el-form :model="tmForm" style="width: 80%">
         <el-form-item label="品牌名称" label-width="100px">
           <el-input
             autocomplete="off"
-            style="width: 80%"
             v-model="tmForm.tmName"
           ></el-input>
         </el-form-item>
@@ -78,6 +77,7 @@
             <!-- 使用在线获取的imageUrl，才会展示图片 -->
             <img v-if="tmForm.logoUrl" :src="tmForm.logoUrl" class="avatar" />
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+             <div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过2M</div>
           </el-upload>
         </el-form-item>
       </el-form>
@@ -119,16 +119,17 @@ export default {
       this.limit = val;
       this.reqTrademarkList(this.page, this.limit);
     },
+    
     //点击页码触发的回调函数，函数形参接收点击的当前页
     handleCurrentChange(val) {
       //console.log(`当前页: ${val}`);
       this.page = val; //修改page,重新发送请求
-      this.reqTrademarkList(this.page, this.limit);
+      this.reqTrademarkList(this.page, this.limit);//这部分代码可以整合到reqTrademarkList中
     },
 
     //调用查询trademarkLIst的接口
     async reqTrademarkList(page, limit) {
-      const re = await this.$traApi.getTradeMarkList(page, limit); //异步请求
+      const re = await this.$API.trademark.getTradeMarkList(page, limit); //异步请求
       try {
         if (re.code === 20000 || re.code === 200) {
           //20000是mock请求返回的
@@ -151,6 +152,7 @@ export default {
     },
     //图片上传前图片格式和大小的校验
     beforeAvatarUpload(file) {
+      //console.log("file.type",file.type);//image/jpeg
       const isJPG = file.type === "image/jpeg";
       const isLt2M = file.size / 1024 / 1024 < 2;
 
@@ -181,7 +183,7 @@ export default {
       this.dialogFormVisible = false;
       //异步发送请求，新增数据
 
-      const re = await this.$traApi.getAddOrUpdateTradeMark(this.tmForm);
+      const re = await this.$API.trademark.getAddOrUpdate(this.tmForm);
       //console.log(re.code,re.data);
       try {
         if (re.code === 20000 || re.code === 200) {
