@@ -15,9 +15,15 @@ import router from './router'
 import '@/icons' // icon
 import '@/permission' // permission control
 
+import CatagorySelector from "@/components/CatagorySelector";
+import HintButton from "@/components/HintButton";
+
 import * as API from "@/api";//注意引入的方式
 Vue.prototype.$API = API;
-//Vue.prototype
+
+//组件的全局注册
+Vue.component(CatagorySelector.name,CatagorySelector);
+Vue.component('HintButton',HintButton);
 
 /**
  * If you don't want to use mock-server

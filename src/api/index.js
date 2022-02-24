@@ -7,3 +7,4 @@
 //引入并暴露语法
 export {default as trademark} from "@/api/trademark";
 export {default as attr} from "@/api/attr";
+export {default as category} from "@/api/category";
