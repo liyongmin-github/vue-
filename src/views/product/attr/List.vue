@@ -36,13 +36,16 @@
               title="修改"
               @click="attrEdit(row)"
             ></HintButton>
-            <HintButton
+            <el-popconfirm :title="`确定删除${row.attrName}吗？`" @onConfirm = "delAttr(row)">
+              <HintButton
               type="danger"
+              slot="reference"
               icon="el-icon-delete"
               size="mini"
               title="删除"
-              @click="delAttr"
             ></HintButton>
+            </el-popconfirm>
+            
           </template>
         </el-table-column>
       </el-table>
@@ -285,7 +288,7 @@ export default {
         if (re.code === 20000 || re.code === 200) {
           this.$message.success("保存属性值成功");
           this.isShow = true;
-          this.getAttrList(); //重新请求属性列表
+          this.reqAttrList(); //重新请求属性列表
         } else {
           this.$message.error("保存属性值失败!!!");
         }
@@ -294,7 +297,20 @@ export default {
       }
     },
     //删除属性
-    delAttr() {},
+    async delAttr(row) {
+      
+      const re = await this.$API.attr.getDelAttr(row.id);
+      try{
+        if(re.code === 20000 || re.code === 200){
+           this.$message.success('删除平台属性成功');
+           this.reqAttrList();
+        }else{
+          this.$message.error('删除平台属性失败！！！');
+        }
+      }catch(e){
+         this.$message.error('请求删除平台属性失败！！！');
+      }
+    },
   },
 };
 </script>
