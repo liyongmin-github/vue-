@@ -41,7 +41,7 @@
               icon="el-icon-delete"
               size="mini"
               title="删除"
-              @click="attrDel"
+              @click="delAttr"
             ></HintButton>
           </template>
         </el-table-column>
@@ -85,7 +85,7 @@
               @keyup.enter.native="toLook(row)"
             ></el-input>
             <span
-              @click="toEdit(row,$index)"
+              @click="toEdit(row, $index)"
               v-if="!row.isEdit"
               style="display: block; weight: 100%"
               >{{ row.valueName }}</span
@@ -93,13 +93,18 @@
           </template>
         </el-table-column>
         <el-table-column prop="prop" label="操作" width="width">
-          <HintButton
-            type="danger"
-            icon="el-icon-delete"
-            size="mini"
-            title="删除属性值"
-            @click="attrDel"
-          ></HintButton>
+          <template v-slot="{ row, $index }">
+            <!-- 注意模板字串的使用，:xxx= "js语法区域" -->
+            <el-popconfirm :title="`确定删除${row.valueName}吗？`" @onConfirm = "attrForm.attrValueList.splice($index,1)">
+              <HintButton
+                type="danger"
+                slot="reference"
+                icon="el-icon-delete"
+                size="mini"
+                title="删除属性值"
+              ></HintButton>
+            </el-popconfirm>
+          </template>
         </el-table-column>
       </el-table>
       <el-button type="primary">保存</el-button>
@@ -198,11 +203,9 @@ export default {
 
       //每次添加属性的时候自动获取焦点肯定每次都是给数组this.refs对象名称为数组下标最后最后一个设置获取焦点事件
       //上方的push方法同样涉及到dom的更新，要使用nexTick,否则直接通过this.refs[]获取到的input时undefined
-      this.$nextTick(()=>{
-        this.$refs[this.attrForm.attrValueList.length-1].focus();
-      })
-      
-
+      this.$nextTick(() => {
+        this.$refs[this.attrForm.attrValueList.length - 1].focus();
+      });
     },
 
     //更新attr（进入属性值编辑页面）
@@ -211,7 +214,6 @@ export default {
       //先展示属性值新增页面
       this.isShow = false;
       //另外需要把对应行的数据深拷贝到attrForm中，这样才能在原有数据的基础上编辑(更新)数据
-      console.log(row);
       this.attrForm = cloneDeep(row); //row中的数据
 
       //在属性值编辑页面需要遍历attrForm中旧的attrValueList，为每个旧的attrValueList的对象新增一个isEdit属性
@@ -221,49 +223,46 @@ export default {
       );
     },
 
-    //删除attr
-    attrDel() {
-      console.log("删除attr");
-    },
-
     //点击span,切换到input(查看模式--->编辑模式)
-    toEdit(row,index) {
+    toEdit(row, index) {
       //console.log("toEdit");
-      row.isEdit = true;//dom要重新渲染
+      row.isEdit = true; //dom要重新渲染
       //在编辑模式下自动获取焦点，注意在$nextTick(()=>{})，必须在最上面最近的dom更新完成后才执行回调函数
       //使用el-input组件内置的方法，需要通过ref获取dom节点调用这个方法
-      this.$nextTick(()=>{
+      this.$nextTick(() => {
         this.$refs[index].focus();
-      })
-      
-      
-      
+      });
     },
 
     //input失去焦点，或者使用enter键时抓为查看模式
     toLook(row) {
       //1.在转为查看模式之前注意判断input中输入的内容不为空
-      if(row.valueName.trim() === ''){
+      if (row.valueName.trim() === "") {
         //this.$message.error('输入请不要为空！！！');//注意每次新增多个新的input的时候会自动失去一次焦点
         //同时清空内容
-        return row.valueName = '';
+        return (row.valueName = "");
       }
-      
+
       //2.确保input中输入的内容和除了自己之外的其他属性值都不相同(使用数组的some,根据地址比较是否为同一个对象)
-      const isRepeat = this.attrForm.attrValueList.some(item=>{
-        if(item !== row){//通过地址比较是否为同一个对象
+      const isRepeat = this.attrForm.attrValueList.some((item) => {
+        if (item !== row) {
+          //通过地址比较是否为同一个对象
           return item.valueName === row.valueName;
         }
       });
-      if(isRepeat){
-        this.$message.error('您输入的内容已重复！！！');
+      if (isRepeat) {
+        this.$message.error("您输入的内容已重复！！！");
         //同时清空输入框内容
-        return row.valueName = '';
+        return (row.valueName = "");
       }
 
       row.isEdit = false;
-
     },
+
+    //删除属性
+    delAttr(){
+
+    }
   },
 };
 </script>
