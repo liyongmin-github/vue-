@@ -62,8 +62,8 @@
         </el-table-column>
         <el-table-column prop="prop" label="属性值名称" width="width">
           <template v-slot="{row,$index}">
-            <el-input v-model="row.valueName" placeholder="请输入属性值名称"></el-input>
-            <!-- <el-tag type="success">{row}</el-tag> -->
+            <el-input v-model="row.valueName" placeholder="请输入属性值名称" size="mini" v-show="row.isEdit"></el-input>
+            <span  @click="toEdit" v-show="!row.isEdit">{{row.valueName}}</span>
           </template>
         </el-table-column>
         <el-table-column prop="prop" label="操作" width="width">
@@ -91,7 +91,6 @@ export default {
       category1Id: "",
       category2Id: "",
       category3Id: "",
-      //categoryIds: {},
       attrList: [],
       isShow: true,
       attrForm:{
@@ -103,7 +102,6 @@ export default {
         categoryId:0,
         categoryLevel:3,
       },
-      
     };
   },
   mounted() {},
@@ -129,15 +127,7 @@ export default {
           this.reqAttrList();
       }
     },
-    /* getCategoryId(value) {//这种方式接收子组件传递的catagoryId不好，后期清空attrList不太好弄了
-      //console.log(catagoryId, level);
-      this.categoryIds = value;
-      //console.log(this.categoryIds);
-
-      //请求平台属性，思路2：在
-      // if(){
-      // }
-    }, */
+   
     async reqAttrList() {
       const re = await this.$API.attr.getAttrList(
         this.category1Id,
@@ -174,10 +164,13 @@ export default {
         //attrId和attrForm中的id值是一致的
         attrId:this.attrForm.id,//attrForm中的id在修改数据的时候才能获取到，新增的时候是undefined
         valueName:"",
+        //在添加属性值的时候为每一个新增的属性值上都携带一个新的属性标识：isEdit,用于查看模式和编辑模式的切换（span/input）
+        //确保在每个属性上都有添加，便于到时候针对每个属性值都能单独进行模式切换
+        isEdit:true,//新增属性值中式通过push在数组中新增数据的，因此数组内的数据都是响应式的
       });
     },
 
-    //更新attr
+    //更新attr（进入属性值编辑页面）
     attrEdit(row) {
       //console.log("更新attr");
       //先展示属性值新增页面
@@ -185,6 +178,11 @@ export default {
       //另外需要把对应行的数据深拷贝到attrForm中，这样才能在原有数据的基础上编辑(更新)数据
       console.log(row);
       this.attrForm = cloneDeep(row);//row中的数据
+      
+      //在属性值编辑页面需要遍历attrForm中旧的attrValueList，为每个旧的attrValueList的对象新增一个isEdit属性
+      //在旧的对象中新增属性需要使用$set,否则就不是响应式数据了
+      this.attrForm.attrValueList.forEach(item =>item.isEdit = false);
+
 
     },
 
@@ -192,6 +190,11 @@ export default {
     attrDel() {
       console.log("删除attr");
     },
+
+    //点击span,切换到input(查看模式--->编辑模式)
+    toEdit(){
+
+    }
   },
 };
 </script>

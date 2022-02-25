@@ -91,11 +91,6 @@ export default {
 
       //向父组件传递1级目录的catagoryId（使用这种参数传递方法在父组件中需要同样进行其他级数据的清除）
       this.$emit("getCategoryId", { categoryId: category1Id, level: 1 });//
-      /* this.$emit("getCategoryId", {//这种方式不可行，因为父组件中还要根据每次选择的level清空属性列表
-        category1Id: category1Id,
-        category2Id: "",
-        category3Id: "",
-      }); */
 
       //当在一级分类中选择了某项的时候就会触发二级分类列表的请求
       const re = await this.$API.category.getCategory2List(category1Id);
@@ -116,11 +111,6 @@ export default {
       this.category3Id = "";
       this.category3List = [];
       this.$emit("getCategoryId", { categoryId: category2Id, level: 2 });
-      /* this.$emit("getCategoryId", {
-        category1Id: this.category1Id,
-        category2Id: category2Id,
-        category3Id: "",
-      }); */
 
       const re = await this.$API.category.getCategory3List(category2Id);
       try {
@@ -138,11 +128,6 @@ export default {
     selectCatagory3(category3Id) {
       //console.log("category3Id",category3Id);
       this.$emit("getCategoryId", { categoryId: category3Id, level: 3 });
-      /* this.$emit("getCategoryId", {
-        category1Id: this.category1Id,
-        category2Id: this.category2Id,
-        category3Id: category3Id,
-      }); */
     },
   },
 };
