@@ -1,7 +1,7 @@
 <template>
   <!-- 使用行内form表单构建三级分类选择器组件 -->
   <!-- 注意@change后是回调函数，不是函数调用,change事件不要绑定错位置，是在select上的 -->
-  <el-form :inline="true" class="demo-form-inline">
+  <el-form :inline="true" class="demo-form-inline" :disabled = "!isShow">
     <el-form-item label="一级分类">
       <el-select
         placeholder="请选择"
@@ -51,6 +51,7 @@
 export default {
   //定义组件
   name: "CatagorySelector",
+  props:["isShow"],
   data() {
     return {
       category1Id: "",

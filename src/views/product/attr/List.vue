@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-card shadow="always">
-      <CatagorySelector @getCategoryId="getCategoryId"></CatagorySelector>
+      <CatagorySelector @getCategoryId="getCategoryId" :isShow = "isShow"></CatagorySelector>
     </el-card>
 
     <el-card shadow="always" style="margin-top: 20px" v-show="isShow">
@@ -113,7 +113,7 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-button type="primary" @click="saveAttrVal">保存</el-button>
+      <el-button type="primary" @click="saveAttrVal" :disabled = "!attrForm.attrValueList.length">保存</el-button>
       <el-button>取消</el-button>
     </el-card>
   </div>
