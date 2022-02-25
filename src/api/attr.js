@@ -18,10 +18,11 @@ export default {
     //新增/更新属性
     //  /admin/product/saveAttrInfo
     getAddOrUpdateAttr(attrInfo){
-        return myAxios({
+       /*  return myAxios({
             url:`/admin/product/saveAttrInfo`,
             method:'post',
             data:attrInfo
-        });
+        }); */
+        return myAxios.post('/admin/product/saveAttrInfo',attrInfo);
     }
 }

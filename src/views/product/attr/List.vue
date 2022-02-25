@@ -95,7 +95,10 @@
         <el-table-column prop="prop" label="操作" width="width">
           <template v-slot="{ row, $index }">
             <!-- 注意模板字串的使用，:xxx= "js语法区域" -->
-            <el-popconfirm :title="`确定删除${row.valueName}吗？`" @onConfirm = "attrForm.attrValueList.splice($index,1)">
+            <el-popconfirm
+              :title="`确定删除${row.valueName}吗？`"
+              @onConfirm="attrForm.attrValueList.splice($index, 1)"
+            >
               <HintButton
                 type="danger"
                 slot="reference"
@@ -107,7 +110,7 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-button type="primary">保存</el-button>
+      <el-button type="primary" @click="saveAttrVal">保存</el-button>
       <el-button>取消</el-button>
     </el-card>
   </div>
@@ -259,10 +262,39 @@ export default {
       row.isEdit = false;
     },
 
-    //删除属性
-    delAttr(){
+    //保存新增/修改的属性值
+    async saveAttrVal() {
+      //1.判断收集的数据中的attrValueList中是否有空值,去除空值
+      //2.判断属性值对象中去除isEdit属性（attrValueList数组的对象中）[过滤，使用数组的filter方法]
+      this.attrForm.attrValueList = this.attrForm.attrValueList.filter(
+        (item) => {
+          if (item.valueName !== "") {
+            delete item.isEdit;
+            return true;
+          }
+        }
+      );
+      //3.判断attrValueList数组是否为空，为空的话不允许发送请求
+      if (!this.attrForm.attrValueList.length) {
+        return;
+      }
+      //发送新增/修改数据请求
 
-    }
+      try {
+        const re = await this.$API.attr.getAddOrUpdateAttr(this.attrForm);
+        if (re.code === 20000 || re.code === 200) {
+          this.$message.success("保存属性值成功");
+          this.isShow = true;
+          this.getAttrList(); //重新请求属性列表
+        } else {
+          this.$message.error("保存属性值失败!!!");
+        }
+      } catch (e) {
+        this.$message.error("请求保存属性值失败!!!");
+      }
+    },
+    //删除属性
+    delAttr() {},
   },
 };
 </script>
