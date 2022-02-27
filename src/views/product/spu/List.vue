@@ -152,13 +152,21 @@ export default {
 
       //获取spuImageList
       this.$refs.spuform.reqGetSpuImageList(spuId);
-      
+
+      //获取baseSaleAttrList
+      this.$refs.spuform.reqSaleAttrList();
+
     },
 
     //添加SPU
     addSpu(){
       this.isShowSpuForm = true;
       this.isShow = false;
+
+      //获取品牌列表
+      this.$refs.spuform.reqGetTradeList();
+      //获取baseSaleAttrList
+      this.$refs.spuform.reqSaleAttrList();
     },
 
     //添加sku
