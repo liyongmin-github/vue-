@@ -29,7 +29,7 @@ export default {
         return myAxios.put('/admin/product/baseTrademark/update',trademarkInfo);
     }, */
 
-    //查询商品品牌列表信息
+    //查询商品品牌列表信息(分页)
     getTradeMarkList(page,limit){
         //axios对象的函数式用法
         return myAxios({
@@ -41,5 +41,14 @@ export default {
             method:'get',
         });
     },
+
+    //  /admin/product/baseTrademark/getTrademarkList
+    //获取品牌列表
+    getTradeList(){
+        return myAxios({
+            url:'/admin/product/baseTrademark/getTrademarkList',
+            method:'get'
+        })
+    }
 
 }

@@ -15,7 +15,7 @@ export default {
     },
     getCategory3List(category2Id){
         return myAxios({
-            url:`/admin/product/getCategory2/${category2Id}`,
+            url:`/admin/product/getCategory3/${category2Id}`,
             method:'get',
         });
     },

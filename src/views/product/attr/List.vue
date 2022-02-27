@@ -89,7 +89,7 @@
             ></el-input>
             <span
               @click="toEdit(row, $index)"
-              v-if="!row.isEdit"
+              v-else
               style="display: block; weight: 100%"
               >{{ row.valueName }}</span
             >
