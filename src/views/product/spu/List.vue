@@ -78,6 +78,7 @@
         ref="spuform"
         :visible.sync="isShowSpuForm"
         @showSpu = "isShow = $event "
+        @saveSuccess = "saveSuccess"
       ></SpuForm>
       <SkuForm v-show="isShowSkuFrom"></SkuForm>
     </el-card>
@@ -163,7 +164,7 @@ export default {
       this.$refs.spuform.reqGetSpuInfo(spuId);
 
       //获取品牌列表
-      this.$refs.spuform.reqGetTradeList();
+      this.$refs.spuform.reqGetTradeList(this.category3Id);//同时将父组件中的category3Id传递给子组件,注意新增和修改都需要传递
 
       //获取spuImageList
       this.$refs.spuform.reqGetSpuImageList(spuId);
@@ -178,7 +179,7 @@ export default {
       this.isShow = false;
 
       //获取品牌列表
-      this.$refs.spuform.reqGetTradeList();
+      this.$refs.spuform.reqGetTradeList(this.category3Id);
       //获取baseSaleAttrList
       this.$refs.spuform.reqSaleAttrList();
     },
@@ -187,6 +188,15 @@ export default {
     addSku() {
       this.isShowSkuFrom = true;
     },
+
+    //子组件保存成功的回调函数（自定义事件）
+    saveSuccess(spuId){
+      if(spuId){//修改模式
+        this.regGetSpuList(this.page);
+      }else{//新增模式
+        this.regGetSpuList();
+      }
+    }
   },
 };
 </script>
