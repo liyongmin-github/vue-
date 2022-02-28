@@ -88,19 +88,19 @@
               </el-tag>
               <el-input
                 class="input-new-tag"
-                v-if="inputVisible"
-                v-model="inputValue"
+                v-if="row.isEdit"
+                v-model="row.saleAttrValueName"
                 ref="saveTagInput"
                 size="small"
-                @keyup.enter.native="handleInputConfirm"
-                @blur="handleInputConfirm"
+                @keyup.enter.native="handleInputConfirm(row)"
+                @blur="handleInputConfirm(row)"
               >
               </el-input>
               <el-button
                 v-else
                 class="button-new-tag"
                 size="small"
-                @click="showInput"
+                @click="showInput(row)"
                 >添加</el-button
               >
             </template>
@@ -178,7 +178,6 @@ export default {
       tmList: [], //item.tmName
 
       //el-tag相关数据
-      inputVisible: false,
       inputValue: "",
     };
   },
@@ -265,21 +264,65 @@ export default {
       }
     },
 
-    //el-tag组件相关方法
+    /* el-tag组件相关方法 */
+
+    //删除销售属性
     handleClose(row, index) {
       row.spuSaleAttrValueList.splice(index, 1);
+
     },
 
-    showInput() {
-      this.inputVisible = true;
+    //点击添加的事件回调函数
+    showInput(row) {
+      /* this.inputVisible = true;
       this.$nextTick((_) => {
         this.$refs.saveTagInput.$refs.input.focus();
-      });
+      }); */
+
+      //为确保点击每一行的添加，只有对应行的input会出现，给每个row上添加isEdit属性
+      //此处的row对应属性列表（spuSaleAttrList）中的每一行
+      //注意使用$set来保证新增属性的响应式
+      this.$set(row,'isEdit',true);//在没有的时候，undefined就是false,不显示input
+      
+      //因为每次只会在一个input中输入，因此v-model对应的值可以只使用一个
+      //但是同时要为每个row增加一个saleAttrValueName，用于暂存每次输入的值，便于对输入内容进行判断
+      //saleAttrName每次初始设置为""
+      this.$set(row,'saleAttrValueName',"");//v-model中进行绑定
+      
+      //自动获取焦点（确保在页面更新后获取dom，调用dom上的focus方法，否则会出现undefined.focus的错误）
+      this.$nextTick(()=>{
+        this.$refs.saveTagInput.focus();
+      })
+
     },
 
-    //新增属性值input中的失去焦点事件
-    handleInputConfirm() {
-      console.log("失去焦点");
+    //新增销售属性值input中的失去焦点事件触发的回调（enter事件触发的回调）
+    handleInputConfirm(row) {
+      //在row上收集需要的数据saleAttrValueName和baseSaleAttrId构造对象
+      const {baseSaleAttrId,saleAttrValueName} = row;
+      //1.需要判断input内容是否为空
+      if(saleAttrValueName.trim() === ''){
+        this.$message.error('输入不能为空！');
+        row.saleAttrValueName = '';//清空input
+        row.isEdit = false;
+        return;
+      }
+
+       //2.需要判断输入的值是否和saleAttrValueList中的值有重复（本次比较前这一项还没有添加到数组中）
+      const isRepeat = row.spuSaleAttrValueList.some(item=>{
+        return item.saleAttrValueName === saleAttrValueName
+      });
+      if(isRepeat){
+         this.$message.error('输入不能重复！');
+          row.saleAttrValueName = '';
+          row.isEdit = false;
+         return;
+      }
+      
+      //将符合条件的值push到数组中
+      row.spuSaleAttrValueList.push({baseSaleAttrId,saleAttrValueName});
+      row.saleAttrValueName = '';
+      row.isEdit = false;
     },
 
     //新增销售属性
