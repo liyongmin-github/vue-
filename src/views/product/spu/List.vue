@@ -45,12 +45,16 @@
                 size="mini"
                 title="查看SPU的SKU列表"
               ></HintButton>
-              <HintButton
+              <el-popconfirm :title="`确定删除${row.spuName}吗？`" @onConfirm = "delSpu(row.id)">
+                <HintButton
                 type="danger"
+                slot="reference"
                 icon="el-icon-delete"
                 size="mini"
                 title="删除SPU"
               ></HintButton>
+              </el-popconfirm>
+              
             </template>
           </el-table-column>
         </el-table>
@@ -67,7 +71,7 @@
         >
         </el-pagination>
       </div>
-     <!--  <SpuForm
+      <!--  <SpuForm
         v-show="isShowSpuForm"
         ref="spuform"
         :visible="isShowSpuForm"
@@ -77,8 +81,8 @@
         v-show="isShowSpuForm"
         ref="spuform"
         :visible.sync="isShowSpuForm"
-        @showSpu = "isShow = $event "
-        @saveSuccess = "saveSuccess"
+        @showSpu="isShow = $event"
+        @saveSuccess="saveSuccess"
       ></SpuForm>
       <SkuForm v-show="isShowSkuFrom"></SkuForm>
     </el-card>
@@ -164,7 +168,7 @@ export default {
       this.$refs.spuform.reqGetSpuInfo(spuId);
 
       //获取品牌列表
-      this.$refs.spuform.reqGetTradeList(this.category3Id);//同时将父组件中的category3Id传递给子组件,注意新增和修改都需要传递
+      this.$refs.spuform.reqGetTradeList(this.category3Id); //同时将父组件中的category3Id传递给子组件,注意新增和修改都需要传递
 
       //获取spuImageList
       this.$refs.spuform.reqGetSpuImageList(spuId);
@@ -190,11 +194,32 @@ export default {
     },
 
     //子组件保存成功的回调函数（自定义事件）
-    saveSuccess(spuId){
-      if(spuId){//修改模式
+    saveSuccess(spuId) {
+      if (spuId) {
+        //修改模式
         this.regGetSpuList(this.page);
-      }else{//新增模式
+      } else {
+        //新增模式
         this.regGetSpuList();
+      }
+    },
+
+    //删除spu
+    async delSpu(spuId){
+      try {
+        let re = await this.$API.spu.remove(spuId);
+        if (re.code === 20000 || re.code === 200) {
+           this.$message.success("删除spu成功");
+           if(this.spuList.length > 1){
+             this.regGetSpuList(this.page);//展示当前页
+           }else{
+              this.regGetSpuList(this.page - 1);//展示前一页
+           }
+        } else {
+          this.$message.error("删除spu成功失败!!!");
+        }
+      } catch (e) {
+        this.$message.error("请求删除spu成功失败!!!");
       }
     }
   },
