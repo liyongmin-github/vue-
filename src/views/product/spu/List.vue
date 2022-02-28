@@ -9,7 +9,13 @@
     </el-card>
     <el-card style="margin-top: 20px">
       <div v-show="!isShowSpuForm && !isShowSkuFrom">
-        <el-button type="primary" icon="el-icon-plus" :disabled = "!category3Id" @click="addSpu">添加SPU</el-button>
+        <el-button
+          type="primary"
+          icon="el-icon-plus"
+          :disabled="!category3Id"
+          @click="addSpu"
+          >添加SPU</el-button
+        >
         <el-table :data="spuList" style="width: 100%" border>
           <el-table-column label="序号" type="index" width="80">
           </el-table-column>
@@ -18,7 +24,7 @@
           <el-table-column prop="description" label="spu描述" width="width">
           </el-table-column>
           <el-table-column prop="prop" label="操作" width="width">
-            <template v-slot = "{row,$index}">
+            <template v-slot="{ row, $index }">
               <HintButton
                 type="success"
                 icon="el-icon-plus"
@@ -31,7 +37,7 @@
                 icon="el-icon-edit"
                 size="mini"
                 title="修改SPU"
-                @click = "updateSpu(row.id)"
+                @click="updateSpu(row.id)"
               ></HintButton>
               <HintButton
                 type="info"
@@ -61,12 +67,21 @@
         >
         </el-pagination>
       </div>
-      <SpuForm v-show="isShowSpuForm" ref="spuform"></SpuForm>
+     <!--  <SpuForm
+        v-show="isShowSpuForm"
+        ref="spuform"
+        :visible="isShowSpuForm"
+        @update:visible="isShowSpuForm = $event"
+      ></SpuForm> -->
+      <SpuForm
+        v-show="isShowSpuForm"
+        ref="spuform"
+        :visible.sync="isShowSpuForm"
+        @showSpu = "isShow = $event "
+      ></SpuForm>
       <SkuForm v-show="isShowSkuFrom"></SkuForm>
-
     </el-card>
   </div>
-
 </template>
 <script>
 import SkuForm from "./components/SkuForm.vue";
@@ -126,7 +141,7 @@ export default {
 
       const { page, limit, category3Id } = this;
       try {
-         const re = await this.$API.spu.getList(page, limit, category3Id);
+        const re = await this.$API.spu.getList(page, limit, category3Id);
         if (re.code === 20000 || re.code === 200) {
           this.spuList = re.data.records;
           this.total = re.data.total;
@@ -139,14 +154,14 @@ export default {
     },
 
     //修改SPU
-    updateSpu(spuId){
+    updateSpu(spuId) {
       this.isShow = false;
       this.isShowSpuForm = true;
       //在子组件上使用ref,这可以通过this.$refs.xxx获取子组件实例，使用子组件上的属性和方法
-      
+
       //调用子组件上的方法获取spuInfo
       this.$refs.spuform.reqGetSpuInfo(spuId);
-      
+
       //获取品牌列表
       this.$refs.spuform.reqGetTradeList();
 
@@ -155,11 +170,10 @@ export default {
 
       //获取baseSaleAttrList
       this.$refs.spuform.reqSaleAttrList();
-
     },
 
     //添加SPU
-    addSpu(){
+    addSpu() {
       this.isShowSpuForm = true;
       this.isShow = false;
 
@@ -170,11 +184,9 @@ export default {
     },
 
     //添加sku
-    addSku(){
+    addSku() {
       this.isShowSkuFrom = true;
     },
-
-    
   },
 };
 </script>
