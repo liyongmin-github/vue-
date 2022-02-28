@@ -106,12 +106,13 @@
             </template>
           </el-table-column>
           <el-table-column prop="prop" label="操作" width="150">
-            <template>
+            <template v-slot="{ row, $index }">
               <HintButton
                 type="danger"
                 icon="el-icon-delete"
                 size="mini"
                 title="删除销售属性"
+                @click="delSaleAttr($index)"
               ></HintButton>
             </template>
           </el-table-column>
@@ -266,10 +267,15 @@ export default {
 
     /* el-tag组件相关方法 */
 
-    //删除销售属性
+    //删除销售属性值
     handleClose(row, index) {
       row.spuSaleAttrValueList.splice(index, 1);
 
+    },
+
+    //删除销售属性
+    delSaleAttr(index){
+      this.spuInfo.spuSaleAttrList.splice(index,1);
     },
 
     //点击添加的事件回调函数
