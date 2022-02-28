@@ -51,7 +51,7 @@
           :placeholder="
             unSelectedSaleAttr.length
               ? `还有${unSelectedSaleAttr.length}个未选择`
-              : '没有了'
+              : '无可选属性了！'
           "
         >
           <el-option
@@ -62,7 +62,13 @@
           ></el-option>
         </el-select>
 
-        <el-button type="primary" icon="el-icon-plus" @click="addSaleAttr">添加销售属性</el-button>
+        <el-button
+          type="primary"
+          icon="el-icon-plus"
+          @click="addSaleAttr"
+          :disabled="!saleAttrIdName"
+          >添加销售属性</el-button
+        >
 
         <el-table :data="spuInfo.spuSaleAttrList" style="width: 100%" border>
           <el-table-column label="序号" type="index" align="center" width="80">
@@ -178,13 +184,12 @@ export default {
   },
   methods: {
     /* 照片墙相关方法 */
-    
+
     //删除图片
     handleRemove(file, fileList) {
       //console.log(file, fileList);
       //filelist就是删除后的imagelist信息
-      this.spuImageList = fileList;//收集spuImageList
-
+      this.spuImageList = fileList; //收集spuImageList
     },
     //预览大图
     handlePictureCardPreview(file) {
@@ -193,9 +198,9 @@ export default {
     },
 
     //上传成功的回调
-    uploadSuccess(response, file, fileList){
+    uploadSuccess(response, file, fileList) {
       //console.log(response, file, fileList);
-      this.spuImageList = fileList;//注意新增图片和原有图片在spuImageList中保存的数据样式不同
+      this.spuImageList = fileList; //注意新增图片和原有图片在spuImageList中保存的数据样式不同
     },
 
     //获取spu基本信息接口请求函数调用
@@ -278,19 +283,31 @@ export default {
     },
 
     //新增销售属性
-    addSaleAttr(){
+    addSaleAttr() {
       //需要向spuInfo.spuSaleAttrList添加的结构
       /* {
         baseSaleAttrId: 0,
         saleAttrName: "string",
         spuSaleAttrValueList: [],
       } */
-      console.log(this.saleAttrIdName);
-      //const [] = this.saleAttrIdName.split
+      //console.log(this.saleAttrIdName);//2:版本
+      const [baseSaleAttrId,saleAttrName] = this.saleAttrIdName.split(':');//数组的解构复制
+      //构建插入对象
+      const saleAttr = {
+        baseSaleAttrId,
+        saleAttrName,
+        spuSaleAttrValueList:[],
+      };
+      
+      //向spuSaleAttrList中新增
+      this.spuInfo.spuSaleAttrList.push(saleAttr);
+      //注意清空saleAttrIdName
+      this.saleAttrIdName = '';
 
-    }
+      //注意：unSelectedSaleAttr不需要更改，因为spuSaleAttrList新增后，计算属性会自定计算得到新的unSelectedSaleAttr
 
 
+    },
   },
   computed: {
     //计算得到所有销售属性中当前尚未选择的销售属性
