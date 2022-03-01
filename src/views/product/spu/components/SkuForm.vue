@@ -37,9 +37,9 @@
 
       <el-form-item label="平台属性">
         <el-form :inline="true" label-width="100px">
-          <el-form-item label="手机一级" v-for="">
+          <el-form-item :label="attr.attrName" v-for="(attr,index) in attrInfoList">
             <el-select v-model="model" placeholder="请选择">
-              <el-option label="label" value="value"></el-option>
+              <el-option :label="item.valueName" value="value" v-for="item in attr.attrValueList"></el-option>
             </el-select>
           </el-form-item>
         </el-form>
@@ -47,23 +47,32 @@
 
       <el-form-item label="销售属性">
         <el-form :inline="true" label-width="100px">
-          <el-form-item label="手机一级" v-for>
+          <el-form-item :label="salAttr.saleAttrName" v-for="(salAttr,index) in spuSaleAttrList">
             <el-select v-model="model" placeholder="请选择">
-              <el-option label="label" value="value"></el-option>
+              <el-option :label="item.saleAttrValueName" value="value" v-for="item in salAttr.spuSaleAttrValueList"></el-option>
             </el-select>
           </el-form-item>
         </el-form>
       </el-form-item>
 
       <el-form-item label="图片列表">
-        <el-table :data="imageList" border style="width: 100%">
+        <el-table :data="spuImageList" border style="width: 100%">
           <el-table-column type="selection" align="center" width="width">
           </el-table-column>
           <el-table-column prop="prop" label="图片" width="width">
+              <template v-slot="{row,$index}">
+                <img :src="row.imgUrl" alt="" style="height:80px;width:80px">
+              </template>
           </el-table-column>
           <el-table-column prop="prop" label="名称" width="width">
+              <template v-slot="{row,$index}">
+                  {{row.imgName}}
+              </template>
           </el-table-column>
           <el-table-column prop="prop" label="操作" width="width">
+              <template v-slot="{row,$index}">
+                 <el-button type="primary" size="mini">设为默认</el-button>
+              </template>
           </el-table-column>
         </el-table>
       </el-form-item>
@@ -80,8 +89,7 @@ export default {
   data() {
     return {
       model: "", //临时
-      imageList: [], //临时
-
+    
       attrInfoList: [],
       spuSaleAttrList: [],
       spuImageList: [],
@@ -122,7 +130,7 @@ export default {
           this.$message.error("请求初始化数据失败", reason);
         });
     },
-
+    
     //取消按钮
     cancel() {
       this.$emit("update:visible", false);
