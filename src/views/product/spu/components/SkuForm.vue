@@ -75,7 +75,12 @@
       </el-form-item>
 
       <el-form-item label="图片列表">
-        <el-table :data="spuImageList" border style="width: 100%" @selection-change="handleSelectionChange">
+        <el-table
+          :data="spuImageList"
+          border
+          style="width: 100%"
+          @selection-change="handleSelectionChange"
+        >
           <el-table-column type="selection" align="center" width="width">
           </el-table-column>
           <el-table-column prop="prop" label="图片" width="width">
@@ -90,7 +95,13 @@
           </el-table-column>
           <el-table-column prop="prop" label="操作" width="width">
             <template v-slot="{ row, $index }">
-              <el-button  v-if="row.isDefault === '0'" type="primary" size="mini" @click="setDefault(spuImageList,row)">设为默认</el-button>
+              <el-button
+                v-if="row.isDefault === '0'"
+                type="primary"
+                size="mini"
+                @click="setDefault(spuImageList, row)"
+                >设为默认</el-button
+              >
               <el-tag v-else type="success">默认</el-tag>
             </template>
           </el-table-column>
@@ -98,7 +109,7 @@
       </el-form-item>
 
       <el-form-item>
-        <el-button type="primary">保存</el-button>
+        <el-button type="primary" @click="save">保存</el-button>
         <el-button @click="cancel">取消</el-button>
       </el-form-item>
     </el-form>
@@ -108,13 +119,11 @@
 export default {
   data() {
     return {
-      model: "", //临时
-
       attrInfoList: [],
       spuSaleAttrList: [],
       spuImageList: [],
       spuName: "",
-      spu:{},
+      spu: {},
 
       //需要收集的sku数据
       skuInfo: {
@@ -122,14 +131,12 @@ export default {
         category3Id: "",
         spuId: 0,
         tmId: 0,
-
         //v-model收集
         price: "",
         weight: "",
         skuDesc: "",
         skuName: "",
-        skuImageList:[],
-
+        skuImageList: [],
         //代码中计算收集
         skuDefaultImg: "",
         skuAttrValueList: [
@@ -191,12 +198,11 @@ export default {
             this.attrInfoList = val[0].data;
             this.spuSaleAttrList = val[1].data;
             const spuImageList = val[2].data;
-            spuImageList.forEach(item=>{
-                item.isDefault = '0';//初始为0，都不是默认的
+            spuImageList.forEach((item) => {
+              item.isDefault = "0"; //初始为0，都不是默认的
             });
             //执行以下操作spuImageList就变为响应式的
             this.spuImageList = spuImageList;
-
           } else {
             this.$message.error("初始化数据失败！");
           }
@@ -207,25 +213,74 @@ export default {
     },
 
     //table上的选择事件
-    handleSelectionChange(val){
-        //console.log(val);
+    handleSelectionChange(val) {
+      //console.log(val);
 
-        this.skuImageList = val;//选择图片的list
+      this.skuImageList = val; //选择图片的list
     },
 
     //设置默认图片(排他法)
-    setDefault(spuImageList,row){
-        spuImageList.forEach(item=>{
-            item.isDefault = '0'
-        });
-        row.isDefault = '1';
-        this.skuInfo.skuDefaultImg = row.imgUrl;//收集默认图片url
+    setDefault(spuImageList, row) {
+      spuImageList.forEach((item) => {
+        item.isDefault = "0";
+      });
+      row.isDefault = "1";
+      this.skuInfo.skuDefaultImg = row.imgUrl; //收集默认图片url
     },
+    //save
+    async save() {
+      //1.获取之前收集的数据
+      const { attrInfoList, spuSaleAttrList, spu, skuInfo } = this;
+      //2.数据整理
+      //spu获取父级来源数据
+      skuInfo.category3Id = spu.category3Id;
+      skuInfo.spuId = spu.id;
+      skuInfo.tmId = spu.tmId;
 
+      //attrInfoList需要从上边整理出attrIdValueId
+      skuInfo.skuAttrValueList = attrInfoList.reduce((prev, current) => {
+        if (current.attrIdValueId) {
+          const [attrId, valueId] = current.attrIdValueId.split(":");
+          prev.push({ attrId, valueId });
+        }
+        return prev;
+      }, []);
+
+      //spuSaleAttrList需要整理出saleIdValueId
+      skuInfo.skuSaleAttrValueList = spuSaleAttrList.reduce((prev, current) => {
+        if (current.saleIdValueId) {
+          const [saleAttrId, saleAttrValueId] =
+            current.saleIdValueId.split(":");
+          prev.push({ saleAttrId, saleAttrValueId });
+        }
+        return prev;
+      }, []);
+
+      //3.发送请求（成功如何，失败如何）
+      try {
+        const re = await this.$API.sku.addUpdate(skuInfo);
+        if (re.code === 20000 || re.code === 200) {
+          this.$message.success("保存sku成功！");
+          //不需要重新请求spu,跳转回主页
+          this.$emit('update:visible',false);
+          this.resetData();
+        } else {
+          this.$message.error("保存sku失败！");
+        }
+      } catch (e) {
+        this.$message.error("请求保存sku失败！");
+      }
+    },
     //取消按钮
     cancel() {
       this.$emit("update:visible", false);
+      this.resetData();
     },
+
+    //清空重置数据
+    resetData(){
+      Object.assign(this._data,this.$options.data());
+    }
   },
 };
 </script>
