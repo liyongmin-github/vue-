@@ -30,7 +30,7 @@
                 icon="el-icon-plus"
                 size="mini"
                 title="添加SKU"
-                @click="addSku"
+                @click="addSku(row)"
               ></HintButton>
               <HintButton
                 type="warning"
@@ -45,16 +45,18 @@
                 size="mini"
                 title="查看SPU的SKU列表"
               ></HintButton>
-              <el-popconfirm :title="`确定删除${row.spuName}吗？`" @onConfirm = "delSpu(row.id)">
+              <el-popconfirm
+                :title="`确定删除${row.spuName}吗？`"
+                @onConfirm="delSpu(row.id)"
+              >
                 <HintButton
-                type="danger"
-                slot="reference"
-                icon="el-icon-delete"
-                size="mini"
-                title="删除SPU"
-              ></HintButton>
+                  type="danger"
+                  slot="reference"
+                  icon="el-icon-delete"
+                  size="mini"
+                  title="删除SPU"
+                ></HintButton>
               </el-popconfirm>
-              
             </template>
           </el-table-column>
         </el-table>
@@ -84,7 +86,11 @@
         @showSpu="isShow = $event"
         @saveSuccess="saveSuccess"
       ></SpuForm>
-      <SkuForm v-show="isShowSkuFrom"></SkuForm>
+      <SkuForm
+        v-show="isShowSkuFrom"
+        ref="skuform"
+        :visible.sync="isShowSkuFrom"
+      ></SkuForm>
     </el-card>
   </div>
 </template>
@@ -189,8 +195,10 @@ export default {
     },
 
     //添加sku
-    addSku() {
+    addSku(row) {
       this.isShowSkuFrom = true;
+      //代用skuForm中的初始化数据请求函数
+      this.$refs.skuform.InitSkuFormReq(this.category1Id,this.category2Id,row);
     },
 
     //子组件保存成功的回调函数（自定义事件）
@@ -205,23 +213,23 @@ export default {
     },
 
     //删除spu
-    async delSpu(spuId){
+    async delSpu(spuId) {
       try {
         let re = await this.$API.spu.remove(spuId);
         if (re.code === 20000 || re.code === 200) {
-           this.$message.success("删除spu成功");
-           if(this.spuList.length > 1){
-             this.regGetSpuList(this.page);//展示当前页
-           }else{
-              this.regGetSpuList(this.page - 1);//展示前一页
-           }
+          this.$message.success("删除spu成功");
+          if (this.spuList.length > 1) {
+            this.regGetSpuList(this.page); //展示当前页
+          } else {
+            this.regGetSpuList(this.page - 1); //展示前一页
+          }
         } else {
           this.$message.error("删除spu成功失败!!!");
         }
       } catch (e) {
         this.$message.error("请求删除spu成功失败!!!");
       }
-    }
+    },
   },
 };
 </script>
