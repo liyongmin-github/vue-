@@ -1,3 +1,4 @@
+// 用户登录时的token校验
 import router from './router'
 import store from './store'
 import { Message } from 'element-ui'
@@ -26,12 +27,13 @@ router.beforeEach(async(to, from, next) => {
       next({ path: '/' })
       NProgress.done()
     } else {
-      const hasGetUserInfo = store.getters.name
+      const hasGetUserInfo = store.getters.name;//获取用户名
       if (hasGetUserInfo) {
+        
         next()
       } else {
         try {
-          // get user info
+          // get user info(请求用户信息)
           await store.dispatch('user/getInfo')
 
           next()

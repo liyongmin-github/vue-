@@ -30,71 +30,96 @@ import Layout from '@/layout'
  * a base page that does not have permission requirements
  * all roles can be accessed
  */
-export const constantRoutes = [
-  {
+
+//常量路由
+export const constantRoutes = [{
     path: '/login',
-    component: () => import('@/views/login/index'),//路由懒加载
+    component: () => import('@/views/login/index'), //路由懒加载
     hidden: true
   },
-
   {
     path: '/404',
     component: () => import('@/views/404'),
     hidden: true
   },
-
   {
     path: '/',
     component: Layout,
     redirect: '/dashboard',
     children: [{
       path: 'dashboard',
-      name: 'Dashboard',//注意路由名称必须固定用路径对应首字母大写表示
+      name: 'Dashboard', //注意路由名称必须固定用路径对应首字母大写表示
       component: () => import('@/views/dashboard/index'),
-      meta: { title: '首页', icon: 'dashboard' }
+      meta: {
+        title: '首页',
+        icon: 'dashboard'
+      }
     }]
   },
+
+]
+
+//异步路由(权限路由,包含真实路由对象)
+export const asyncRoutes = [ 
+  //商品管理路由
   {
     path: '/propduct',
     component: Layout,
-    name:'Product',
-    meta: { title: '商品管理', icon: 'el-icon-s-goods'},
+    name: 'Product',
+    meta: {
+      title: '商品管理',
+      icon: 'el-icon-s-goods'
+    },
     children: [{
-      path: '/trademark/list',
-      name: 'Trademark',//注意路由名称必须固定用路径对应首字母大写表示
-      component: () => import('@/views/product/trademark/List'),
-      meta: { title: '品牌管理'}
-    },
-    {
-      path: '/attr/list',
-      name: 'Attr',//注意路由名称必须固定用路径对应首字母大写表示
-      component: () => import('@/views/product/attr/List'),
-      meta: { title: '平台属性管理'}
-    },
-    {
-      path: '/spu/list',
-      name: 'Spu',//注意路由名称必须固定用路径对应首字母大写表示
-      component: () => import('@/views/product/spu/List'),
-      meta: { title: 'SPU管理'}
-    },
-    {
-      path: '/sku/list',
-      name: 'Sku',//注意路由名称必须固定用路径对应首字母大写表示
-      component: () => import('@/views/product/sku/List'),
-      meta: { title: 'SKU管理'}
-    }
+        path: '/trademark/list',
+        name: 'Trademark', //注意路由名称必须固定用路径对应首字母大写表示
+        component: () => import('@/views/product/trademark/List'),
+        meta: {
+          title: '品牌管理'
+        }
+      },
+      {
+        path: '/attr/list',
+        name: 'Attr', //注意路由名称必须固定用路径对应首字母大写表示
+        component: () => import('@/views/product/attr/List'),
+        meta: {
+          title: '平台属性管理'
+        }
+      },
+      {
+        path: '/spu/list',
+        name: 'Spu', //注意路由名称必须固定用路径对应首字母大写表示
+        component: () => import('@/views/product/spu/List'),
+        meta: {
+          title: 'SPU管理'
+        }
+      },
+      {
+        path: '/sku/list',
+        name: 'Sku', //注意路由名称必须固定用路径对应首字母大写表示
+        component: () => import('@/views/product/sku/List'),
+        meta: {
+          title: 'SKU管理'
+        }
+      }
 
-  ]
+    ]
   },
-
-  
-  // 404 page must be placed at the end !!!
-  { path: '*', redirect: '/404', hidden: true }
 ]
+
+//任意路由（添加路由器的时候，必须最后一个注册）
+export const anyRoute = {
+  path: '*',
+  redirect: '/404',
+  hidden: true
+}
+
 
 const createRouter = () => new Router({
   // mode: 'history', // require service support
-  scrollBehavior: () => ({ y: 0 }),
+  scrollBehavior: () => ({
+    y: 0
+  }),
   routes: constantRoutes
 })
 
