@@ -36,12 +36,12 @@ router.beforeEach(async(to, from, next) => {
           // get user info(请求用户信息)
           await store.dispatch('user/getInfo')
 
-          next()
+          next({...to})
         } catch (error) {
           // remove token and go to login page to re-login
           await store.dispatch('user/resetToken')
           Message.error(error || 'Has Error')
-          next(`/login?redirect=${to.path}`)
+          next(`/login?redirect=${to.path}`)//我们需要强制的让next重新去跳转之前想去的地方一次(bug解决)
           NProgress.done()
         }
       }

@@ -17,6 +17,8 @@ import {
   default as router
 } from '@/router'
 
+import cloneDeep  from "lodash/cloneDeep";
+
 const state = {
   token: getToken(),
   name: '',
@@ -90,7 +92,7 @@ const actions = {
     const re = await getInfo(state.token);
     if (re.code === 20000 || re.code === 200) {
       commit('SET_USERINFO', re.data);
-      commit('SET_ROUTES', filterAsyncRoutes(asyncRoutes, re.data.routes)); //re.data.routes中是当前用户携带的相关路由的name数组
+      commit('SET_ROUTES', filterAsyncRoutes(cloneDeep(asyncRoutes), re.data.routes)); //re.data.routes中是当前用户携带的相关路由的name数组
       return 'ok';
     } else {
       return Promise.reject(new Error('filed'));
@@ -135,7 +137,7 @@ function filterAsyncRoutes(allAsyncRoutes, privRouteNames) {
       //获取allAsyncRoutes符合的一级路由
       //如果满足条件的一级路由下还有二级路由(且不是空数组)，需要对二级路由进行递归过滤
       if (item.children && item.children.length) {
-        item.children = filterAsyncRoutes(item.children, privRouteNames);
+        item.children = filterAsyncRoutes(item.children, privRouteNames);//一个bug；直接传入异步路由数组，此处会更改二级路由
       }
       return true;
     }
