@@ -44,6 +44,7 @@
                 icon="el-icon-info"
                 size="mini"
                 title="查看SPU的SKU列表"
+                @click="showSkuList"
               ></HintButton>
               <el-popconfirm
                 :title="`确定删除${row.spuName}吗？`"
