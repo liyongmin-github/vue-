@@ -44,7 +44,7 @@
                 icon="el-icon-info"
                 size="mini"
                 title="查看SPU的SKU列表"
-                @click="showSkuList"
+                @click="showSkuList(row)"
               ></HintButton>
               <el-popconfirm
                 :title="`确定删除${row.spuName}吗？`"
@@ -93,6 +93,19 @@
         :visible.sync="isShowSkuFrom"
       ></SkuForm>
     </el-card>
+    <!-- 展示spu的sku列表 -->
+    <el-dialog :title="`${spu.spuName} 的sku列表`" :visible.sync="dialogTableVisible" :before-close = "beforeClose">
+      <el-table :data="skuList" v-loading="loading">
+        <el-table-column property="skuName" label="名称" width="width"></el-table-column>
+        <el-table-column property="price" label="价格" width="width"></el-table-column>
+        <el-table-column property="weight" label="weight" width="重量"></el-table-column>
+        <el-table-column  label="默认图片" width="width">
+          <template v-slot="{row,$index}">
+            <img :src="row.skuDefaultImg" alt="" style="width:80px;height:80px">
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -117,6 +130,10 @@ export default {
       spuList: [],
       isShowSpuForm: false,
       isShowSkuFrom: false,
+      dialogTableVisible:false,
+      skuList:[],
+      spu:'',
+      loading:false
     };
   },
   methods: {
@@ -231,6 +248,32 @@ export default {
         this.$message.error("请求删除spu成功失败!!!");
       }
     },
+
+    //展示spu的sku列表
+    async showSkuList(row){
+      this.spu = row;
+      this.dialogTableVisible = true;
+      this.loading = true;
+      try{
+        const re = await this.$API.sku.getListBySpuId(row.id);
+        if(re.code === 20000 || re.code === 200){
+          this.skuList = re.data;
+        }else{
+          thsi.$message.error('查询spu的sku列表失败')
+        }
+      }catch(e){
+        thsi.$message.error('请求查询spu的sku列表失败')
+      }
+      this.loading = false;
+    },
+
+    //dialog关闭前的回调
+    beforeClose(done){
+      console.log(done);
+      this.skuList = [];
+      this.dialogTableVisible = false;
+    }
+
   },
 };
 </script>
