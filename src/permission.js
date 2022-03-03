@@ -11,6 +11,7 @@ NProgress.configure({ showSpinner: false }) // NProgress Configuration
 
 const whiteList = ['/login'] // no redirect whitelist
 
+//全局路由前置守卫
 router.beforeEach(async(to, from, next) => {
   // start progress bar
   NProgress.start()
@@ -27,21 +28,20 @@ router.beforeEach(async(to, from, next) => {
       next({ path: '/' })
       NProgress.done()
     } else {
+      
       const hasGetUserInfo = store.getters.name;//获取用户名
       if (hasGetUserInfo) {
-        
         next()
       } else {
         try {
           // get user info(请求用户信息)
           await store.dispatch('user/getInfo')
-
-          next({...to})
+          next({...to});//我们需要强制的让next重新去跳转之前想去的地方一次(bug解决：在admin中的一个路由下，退出登录，使用新用户重新登录，出现白板卡顿)
         } catch (error) {
           // remove token and go to login page to re-login
           await store.dispatch('user/resetToken')
           Message.error(error || 'Has Error')
-          next(`/login?redirect=${to.path}`)//我们需要强制的让next重新去跳转之前想去的地方一次(bug解决)
+          next(`/login?redirect=${to.path}`)
           NProgress.done()
         }
       }

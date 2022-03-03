@@ -17,10 +17,10 @@ import {
   default as router
 } from '@/router'
 
-import cloneDeep  from "lodash/cloneDeep";
+import cloneDeep from "lodash/cloneDeep";
 
 const state = {
-  token: getToken(),
+  token:getToken(),
   name: '',
   avatar: '', //头像
   //用户信息中的用户权限数据
@@ -60,14 +60,9 @@ const mutations = {
 
 const actions = {
   // user login
-  login({
-    commit
-  }, userInfo) {
-    const {
-      username,
-      password
-    } = userInfo
-    return new Promise((resolve, reject) => {
+  async login({commit}, userInfo) {
+    const {username,password} = userInfo;
+    /* return new Promise((resolve, reject) => {
       login({
         username: username.trim(),
         password: password
@@ -81,15 +76,29 @@ const actions = {
       }).catch(error => {
         reject(error)
       })
-    })
+    }); */
+    //使用async和await改造
+    const re = await login({
+      username: username.trim(),
+      password: password
+    });
+    if(re.code === 20000 || re.code === 200){
+      //const data = re.data;
+      commit('SET_TOKEN', re.data.token);//把token保存到vuex中
+      setToken(re.data.token);
+      //将token保存到localstorage
+      //localStorage.setItem('token_key',re.data.token);
+      return Promise.resolve('ok');//返回成功的prmise对象
+    }else{
+      return Promise.reject(new Error('filed'));//返回失败的promise对象
+    }
+
   },
 
   // get user info
-  async getInfo({
-    commit,
-    state
-  }) {
+  async getInfo({commit,state}) {
     const re = await getInfo(state.token);
+    
     if (re.code === 20000 || re.code === 200) {
       commit('SET_USERINFO', re.data);
       commit('SET_ROUTES', filterAsyncRoutes(cloneDeep(asyncRoutes), re.data.routes)); //re.data.routes中是当前用户携带的相关路由的name数组
@@ -106,7 +115,8 @@ const actions = {
   }) {
     return new Promise((resolve, reject) => {
       logout(state.token).then(() => {
-        removeToken() // must remove  token  first
+        //removeToken() // must remove  token  first
+        localStorage.removeItem('token_key');
         resetRouter()
         commit('RESET_STATE')
         resolve()
@@ -137,7 +147,7 @@ function filterAsyncRoutes(allAsyncRoutes, privRouteNames) {
       //获取allAsyncRoutes符合的一级路由
       //如果满足条件的一级路由下还有二级路由(且不是空数组)，需要对二级路由进行递归过滤
       if (item.children && item.children.length) {
-        item.children = filterAsyncRoutes(item.children, privRouteNames);//一个bug；直接传入异步路由数组，此处会更改二级路由
+        item.children = filterAsyncRoutes(item.children, privRouteNames); //一个bug；直接传入异步路由数组，此处会更改二级路由
       }
       return true;
     }
