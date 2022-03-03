@@ -1,8 +1,7 @@
-import {
-  login,
-  logout,
-  getInfo
-} from '@/api/user'
+//注意：这是在一个js中引入另外一个js文件中的方法，注意和api中使用index.js引入并暴露进行区别
+//api中的index.js的引入并暴露是为了方便放在Vue.prototype的$API上使用(方便vue文件上的使用);
+import {login,logout,getInfo} from '@/api/acl/user'
+
 import {
   getToken,
   setToken,

@@ -60,7 +60,53 @@ export const constantRoutes = [{
 ]
 
 //异步路由(权限路由,包含真实路由对象)
-export const asyncRoutes = [ 
+export const asyncRoutes = [
+  //权限数据管理相关的路由
+  {
+    name: 'Acl',
+    path: '/acl',
+    component: Layout,
+    redirect: '/acl/user/list',
+    meta: {
+      title: '权限管理',
+      icon: 'el-icon-lock'
+    },
+    children: [{
+        name: 'User',
+        path: 'user/list',
+        component: () => import('@/views/acl/user/list'),
+        meta: {
+          title: '用户管理',
+        },
+      },
+      {
+        name: 'Role',
+        path: 'role/list',
+        component: () => import('@/views/acl/role/list'),
+        meta: {
+          title: '角色管理',
+        },
+      },
+      {
+        name: 'RoleAuth',
+        path: 'role/auth/:id',
+        component: () => import('@/views/acl/role/roleAuth'),
+        meta: {
+          activeMenu: '/acl/role/list',
+          title: '角色授权',
+        },
+        hidden: true,
+      },
+      {
+        name: 'Permission',
+        path: 'permission/list',
+        component: () => import('@/views/acl/permission/list'),
+        meta: {
+          title: '菜单管理',
+        },
+      },
+    ]
+  },
   //商品管理路由
   {
     path: '/propduct',

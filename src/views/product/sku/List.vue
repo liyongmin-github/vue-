@@ -4,6 +4,9 @@
 <script>
 export default {
     name:"Sku",
+    mounted(){
+        //console.log(this.$API)
+    }
 
 };
 </script>
