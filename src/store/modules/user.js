@@ -88,7 +88,7 @@ const actions = {
       setToken(re.data.token);
       //将token保存到localstorage
       //localStorage.setItem('token_key',re.data.token);
-      return Promise.resolve('ok');//返回成功的prmise对象
+      return 'ok';//async默认返回成功的prmise对象
     }else{
       return Promise.reject(new Error('filed'));//返回失败的promise对象
     }
